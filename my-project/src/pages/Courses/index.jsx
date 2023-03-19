@@ -16,6 +16,7 @@ const Courses = () => {
   const [loadingVideos, setLoadingVideos] = useState(false);
   const [videos, setVideos] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
+
   const [playVideo, setPlayVideo] = useState(false);
 
   const videoRef = useRef(null);

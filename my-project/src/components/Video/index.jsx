@@ -15,8 +15,8 @@ const Video = ({ videoRef, playVideo, setPlayVideo, muted }) => (
 export default Video;
 
 Video.propTypes = {
-  videoRef: PropTypes.string.isRequired,
-  playVideo: PropTypes.string.isRequired,
+  videoRef: PropTypes.object.isRequired,
+  playVideo: PropTypes.bool.isRequired,
   setPlayVideo: PropTypes.func.isRequired,
   muted: PropTypes.bool,
 };

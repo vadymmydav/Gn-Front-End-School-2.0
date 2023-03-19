@@ -60,14 +60,14 @@ const CourseCard = ({
 
 CourseCard.propTypes = {
   title: PropTypes.string.isRequired,
-  lessonsCount: PropTypes.string.isRequired,
+  lessonsCount: PropTypes.number.isRequired,
   skills: PropTypes.array.isRequired,
-  rate: PropTypes.string.isRequired,
+  rate: PropTypes.number.isRequired,
   description: PropTypes.string.isRequired,
   handleVideoHover: PropTypes.func.isRequired,
   handleVideoPause: PropTypes.func.isRequired,
-  video: PropTypes.object.isRequired,
-  id: PropTypes.object.isRequired,
+  video: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
 };
 
 export default CourseCard;
