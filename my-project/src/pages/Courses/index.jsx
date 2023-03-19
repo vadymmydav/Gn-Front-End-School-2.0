@@ -1,23 +1,117 @@
-import React from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import Hls from "hls.js";
+import styled from "styled-components";
+import { Alert } from "@mui/material";
 
-import Course from "../../components/Course";
+import { useGetCoursesQuery } from "../../store/api";
 
-const mockData = [
-    {title: 'React course', image: '', lessonsQuantity: '33', skills: ['reract', 'redux'], rate: '5', id:'442' },
-    {title: 'React course', image: '', lessonsQuantity: '33', skills: ['reract', 'redux'], rate: '5',  id:'444'  },
-    {title: 'React course', image: '', lessonsQuantity: '33', skills: ['reract', 'redux'], rate: '5',  id:'446'  },
-    {title: 'React course', image: '', lessonsQuantity: '33', skills: ['reract', 'redux'], rate: '5', id:'445'  },
-]
+import CourseCard from "../../components/CourseCard";
+import Loader from "../../components/Loader";
+import Header from "../../components/Header";
+import Video from "../../components/Video";
 
 const Courses = () => {
-    return( <div> 
-        Courses
-        { mockData.map((course) => (
-            <Course key={course.id} title={course.title} image={course.image} lessonsQuantity={course.lessonsQuantity} skills={course.skills} rate={course.rate} />
-        )) 
-        }
-        </div>
-    )
-}
+  const { data, isLoading, error } = useGetCoursesQuery();
 
-export default Courses
+  const [loadingVideos, setLoadingVideos] = useState(false);
+  const [videos, setVideos] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [playVideo, setPlayVideo] = useState(false);
+
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (data?.courses) {
+      setLoadingVideos(true);
+
+      const videos = data.courses.map(
+        (course) => course.meta.courseVideoPreview?.link
+      );
+      setVideos(videos);
+      setSelectedVideo(videos[0]);
+      setLoadingVideos(false);
+    }
+  }, [data, setVideos, setLoadingVideos, setSelectedVideo]);
+
+  useEffect(() => {
+    if (selectedVideo) {
+      const hls = new Hls({
+        xhrSetup: (xhr) => {
+          xhr.setRequestHeader("Accept", "application/x-mpegURL");
+        },
+      });
+
+      hls.loadSource(selectedVideo);
+      hls.attachMedia(videoRef.current);
+
+      return () => hls.destroy();
+    }
+  }, [selectedVideo]);
+
+  const handleVideoHover = useCallback(
+    (video) => {
+      setSelectedVideo(video);
+      setPlayVideo(true);
+    },
+    [setSelectedVideo, setPlayVideo]
+  );
+
+  const handleVideoPause = useCallback(() => {
+    setPlayVideo(false);
+    videoRef.current.pause();
+  }, [videoRef, setPlayVideo]);
+
+  return (
+    <>
+      <Header title="Courses" />
+      <Container>
+        {(loadingVideos || isLoading) && <Loader />}
+        {error && <Alert severity="error">{error}</Alert>}
+        {videos && data.courses && (
+          <>
+            <Video
+              videoRef={videoRef}
+              playVideo={playVideo}
+              setPlayVideo={setPlayVideo}
+              muted
+            />
+            <CoursesContainer>
+              {data.courses.map(
+                (course, idx) =>
+                  idx <= 9 && (
+                    <CourseCard
+                      key={course.id}
+                      title={course.title}
+                      description={course.description}
+                      lessonsCount={course.lessonsCount}
+                      skills={course.meta.skills}
+                      rate={course.rating}
+                      handleVideoHover={handleVideoHover}
+                      video={videos[idx]}
+                      handleVideoPause={handleVideoPause}
+                      id={course.id}
+                    />
+                  )
+              )}
+            </CoursesContainer>
+          </>
+        )}
+      </Container>
+    </>
+  );
+};
+
+export default Courses;
+
+const Container = styled.div`
+  width: 96%;
+  margin: 0 auto;
+`;
+
+const CoursesContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 40px;
+  margin-top: 100px;
+`;
